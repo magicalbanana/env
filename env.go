@@ -148,7 +148,17 @@ func set(field reflect.Value, refType reflect.StructField, value string, funcMap
 		separator := refType.Tag.Get("envSeparator")
 		return handleSlice(field, value, separator)
 	case reflect.String:
-		field.SetString(value)
+		parserFunc, ok := funcMap[refType.Type]
+		if ok {
+			val, err := parserFunc(value)
+			if err != nil {
+				return err
+			}
+			field.Set(reflect.ValueOf(val))
+		} else {
+
+			field.SetString(value)
+		}
 	case reflect.Bool:
 		bvalue, err := strconv.ParseBool(value)
 		if err != nil {
